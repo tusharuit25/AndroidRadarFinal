@@ -17,14 +17,19 @@ public class RadarPoint {
     private boolean bitmapLoadedError = false;
     public int angle ;
     public boolean isSelected =false;
-    public RadarPoint(String identifier, float x, float y, int radius,int angle){
+    public boolean isVisited =false;
+    public boolean IsMeetup =false;
+    public boolean IsSpecial =false;
+    public RadarPoint(String identifier, float x, float y, int radius,int angle,boolean IsMeetup,boolean IsSpecial){
         this.identifier = identifier;
         this.radius = radius;
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.isSelected = false;
-
+        this.isVisited = false;
+        this.IsMeetup = IsMeetup;
+        this.IsSpecial = IsSpecial;
     }
 
     /*public RadarPoint(String identifier, float x, float y){
