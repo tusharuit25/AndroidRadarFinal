@@ -103,7 +103,7 @@ public class RadarView extends RelativeLayout   {
         radar.setPinsImage(pinsImage);
         radar.setArrowColor(arrowColor);
 //        radar.setBackground(getResources().getDrawable(R.drawable.radar_background));
-        addView(imageViewBackground);
+      //  addView(imageViewBackground);
         addView(radar);
 
         if (!isInEditMode()) {
