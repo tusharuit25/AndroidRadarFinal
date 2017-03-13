@@ -24,6 +24,7 @@ public class Radar extends View {
     private Context context;
     private Canvas canvas;
     private int zoomDistance;
+    private int scaleFactor;
     private boolean showRadarAnimation = false;
 
     public void setPoints(ArrayList<RadarPoint> points) {
@@ -40,9 +41,9 @@ public class Radar extends View {
     private RadarPoint referencePoint;
 
 
-    private final int DEFAULT_MAX_DISTANCE = 10000;
-
-    private final int DEFAULT_PINS_RADIUS = 60;
+    private final int DEFAULT_MAX_DISTANCE = 1000;
+    private final int DEFAULT_SCALE_FACTOR = 1;
+    private final int DEFAULT_PINS_RADIUS = 5;
     private final int DEFAULT_CENTER_PIN_RADIUS = 18;
     private final int DEFAULT_PINS_COLORS = Color.GREEN;
     private final int DEFAULT_CENTER_PIN_COLOR = Color.RED;
@@ -58,6 +59,7 @@ public class Radar extends View {
     private int centerPinColor;
     private int backgroundColor;
     private int arrowColor;
+
 
     float alpha = 0;
     private int fps = 50;
@@ -84,7 +86,7 @@ public class Radar extends View {
         this.context = context;
         setPaint(DEFAULT_BACKGROUND_COLOR);
 
-        referencePoint = new RadarPoint("example", 10.00000f,22.0000f);
+        referencePoint = new RadarPoint("example", 10.00000f,22.0000f,5,0);
     }
 
     public void setPaint(int color){
@@ -123,7 +125,7 @@ public class Radar extends View {
             long pnt = (width / 2) - getCenterPinRadius();
             drawImage(pnt,pnt, centerPinImage, getCenterPinRadius()*2);
         }else{
-            drawPin(width / 2, width / 2, getCenterPinColor(), getCenterPinRadius());
+            drawPin(width / 2, width / 2, getCenterPinColor(), getCenterPinRadius(),false);
         }
 
         int pxCanvas = width/2;
@@ -160,6 +162,7 @@ public class Radar extends View {
             Location uLocation = new Location("");
             uLocation.setLatitude(points.get(i).x);
             uLocation.setLongitude(points.get(i).y);
+
             locations.add(uLocation);
 
             if (zoomDistance < distanceBetween(referenceLocation, uLocation)) {
@@ -184,24 +187,26 @@ public class Radar extends View {
 
             int angle = rand.nextInt(360)+1;
 
-            long cX = pxCanvas + Math.round(virtualDistance*Math.cos(angle*Math.PI/180));
-            long cY = pxCanvas + Math.round(virtualDistance*Math.sin(angle * Math.PI / 180));
+            long cX = pxCanvas + Math.round(virtualDistance*Math.cos(points.get(i).angle * Math.PI/180));
+            long cY = pxCanvas + Math.round(virtualDistance*Math.sin(points.get(i).angle * Math.PI / 180));
 
-            pinsInCanvas.add(new RadarPoint(points.get(i).identifier, cX, cY, getPinsRadius()));
+            pinsInCanvas.add(new RadarPoint(points.get(i).identifier, cX+scaleFactor, cY+scaleFactor, 20,points.get(i).angle));
 
             if (pinsImage != 0) {
                 long pnt = cX - getPinsRadius();
                 long pnt2 = cY - getPinsRadius();
                 drawImage(pnt, pnt2, pinsImage, getPinsRadius()*2);
             }else{
-                RadarPoint rp = points.get(i);
+                /*RadarPoint rp = points.get(i);
                 if(!rp.isBitmapLoadedError() && rp.getBitmap() != null) {
                     long pnt = cX - getPinsRadius();
                     long pnt2 = cY - getPinsRadius();
                     drawImage(pnt, pnt2, points.get(i).getBitmap(), getPinsRadius());
                 }else{
-                    drawPin(cX, cY, getPinsColor(), getPinsRadius());
-                }
+
+                }*/
+
+                drawPin(cX+scaleFactor, cY+scaleFactor, getPinsColor(), 20,points.get(i).isSelected);
             }
         }
     }
@@ -268,11 +273,21 @@ public class Radar extends View {
         canvas.drawCircle(x, y, radius, paint);
     }
 
-    public void drawPin(long x, long y, int Color,int radius){
+    public void drawPin(long x, long y, int Color,int radius,boolean isSelected){
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color);
+
+        Paint paint1 = new Paint();
+        paint1.setStyle(Paint.Style.STROKE);
+        paint1.setColor(Color);
+
         canvas.drawCircle(x, y, radius, paint);
+
+        if(isSelected)
+        {
+            canvas.drawCircle(x, y, radius+15, paint1);
+        }
     }
 
     public String getTouchedPin(MotionEvent event) {
@@ -301,9 +316,14 @@ public class Radar extends View {
         for (RadarPoint rPoint : pinsInCanvas) {
 
             if ((rPoint.x - xTouch) * (rPoint.x - xTouch) + (rPoint.y - yTouch) * (rPoint.y - yTouch) <= rPoint.radius * rPoint.radius * (rPoint.radius/2)) {
-                touched = rPoint;
-                break;
+                {
+                    touched = rPoint;
+                    rPoint.isSelected = true;
+
+                    break;
+                }
             }
+            invalidate();
         }
 
         if (touched != null) return touched.identifier;
@@ -381,8 +401,19 @@ public class Radar extends View {
 
     public int getMaxDistance() {
         if (maxDistance == 0) return DEFAULT_MAX_DISTANCE;
-        if (maxDistance < 0) return 1000000000;
+        if (maxDistance < 0) return 1000;
         return maxDistance;
+    }
+
+
+    public void setScaleFactor(int scaleFactor) {
+        this.scaleFactor = maxDistance;
+    }
+
+    public int getScaleFactor() {
+        if (scaleFactor == 0) return DEFAULT_SCALE_FACTOR;
+        if (scaleFactor < 0) return 1;
+        return scaleFactor;
     }
 
 
@@ -395,7 +426,7 @@ public class Radar extends View {
         @Override
         public void run() {
             invalidate();
-            mHandler.postDelayed(this, 1000 / fps);
+            mHandler.postDelayed(this, 100 / fps);
         }
     };
 

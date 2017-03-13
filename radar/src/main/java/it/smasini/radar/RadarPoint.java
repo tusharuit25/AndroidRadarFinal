@@ -15,19 +15,24 @@ public class RadarPoint {
     private Bitmap bitmap;
     private boolean bitmapLoaded = false;
     private boolean bitmapLoadedError = false;
-
-    public RadarPoint(String identifier, float x, float y, int radius){
+    public int angle ;
+    public boolean isSelected =false;
+    public RadarPoint(String identifier, float x, float y, int radius,int angle){
         this.identifier = identifier;
         this.radius = radius;
         this.x = x;
         this.y = y;
+        this.angle = angle;
+        this.isSelected = false;
+
     }
 
-    public RadarPoint(String identifier, float x, float y){
+    /*public RadarPoint(String identifier, float x, float y){
         this.identifier = identifier;
         this.x = x;
         this.y = y;
-    }
+
+    }*/
 
     public RadarPoint(String identifier, float x, float y, int radius, String imageUrl) {
         this.x = x;
@@ -49,7 +54,7 @@ public class RadarPoint {
         this.bitmapLoaded = true;
     }
 
-    public Bitmap getBitmap() {
+    /*public Bitmap getBitmap() {
         return bitmap;
     }
 
@@ -72,4 +77,5 @@ public class RadarPoint {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+    */
 }

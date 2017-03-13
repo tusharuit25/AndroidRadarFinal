@@ -143,6 +143,7 @@ public class RadarView extends RelativeLayout {
 
     public void setMaxDistance(int maxDistance) {
         this.radar.setMaxDistance(maxDistance);
+        this.radar.refresh();
     }
 
     public void startAnimation() {
@@ -171,7 +172,7 @@ public class RadarView extends RelativeLayout {
                 }
             }
         }
-        if(loadImageAsyncWithPicasso){
+        /*if(loadImageAsyncWithPicasso){
             for(RadarPoint rp : points){
                 RequestCreator rc = picasso.load(rp.getImageUrl());
                 if(picassoTransformation!=null){
@@ -188,11 +189,13 @@ public class RadarView extends RelativeLayout {
                     public void bitmapLoaded(boolean error) {
                         checkComplete();
                     }
-                });*/
+                });
             }
         }else{
-            checkComplete();
-        }
+
+        }*/
+
+        checkComplete();
     }
 
     public void resetPoints(){
@@ -229,11 +232,11 @@ public class RadarView extends RelativeLayout {
         if(!loadImageAsyncWithPicasso){
             return true;
         }
-        for(RadarPoint rp : points){
+        /*for(RadarPoint rp : points){
             if(!rp.isBitmapLoaded() && !rp.isBitmapLoadedError()){
                 return false;
             }
-        }
+        }*/
         return true;
     }
 

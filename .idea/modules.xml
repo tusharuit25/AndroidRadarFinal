@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AndroidRadar.iml" filepath="$PROJECT_DIR$/AndroidRadar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AndroidRadarFinal.iml" filepath="$PROJECT_DIR$/AndroidRadarFinal.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/radar/radar.iml" filepath="$PROJECT_DIR$/radar/radar.iml" />
     </modules>

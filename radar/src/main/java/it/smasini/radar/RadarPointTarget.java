@@ -28,7 +28,7 @@ public abstract class RadarPointTarget implements Target {
     @Override
     public void onBitmapFailed(Drawable errorDrawable) {
         Log.e("onBitmapFailed", errorDrawable.toString());
-        radarPoint.setBitmapLoadedError(true);
+       // radarPoint.setBitmapLoadedError(true);
         bitmapLoaded(true);
     }
 
