@@ -10,6 +10,13 @@ public class RadarPoint {
     public float x;
     public float y;
     public int radius;
+    float distance;
+    public float getDistance() {
+        return distance;
+    }
+    public void setDistance(float distance) {
+        this.distance = distance;
+    }
     public String identifier;
     private String imageUrl;
     private Bitmap bitmap;

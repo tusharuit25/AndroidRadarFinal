@@ -4,8 +4,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.Shader;
+import android.graphics.SweepGradient;
 import android.location.Location;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -53,6 +57,31 @@ public class Radar extends View {
     private final int POINT_ARRAY_SIZE = 25;
     Point latestPoint[] = new Point[POINT_ARRAY_SIZE];
     Paint latestPaint[] = new Paint[POINT_ARRAY_SIZE];
+    private Paint mPaintLine;//画圆线需要用到的paint
+    private Paint mPaintCircle;//画圆需要用到的paint
+    private Paint mPaintScan;//画扫描需要用到的paint
+    private int mWidth, mHeight;//整个图形的长度和宽度
+    private Matrix matrix = new Matrix();//旋转需要的矩阵
+    private int scanAngle;//扫描旋转的角度
+    private Shader scanShader;//扫描渲染shader
+    private Bitmap centerBitmap;//最中间icon
+    //每个圆圈所占的比例
+    private static float[] circleProportion = {1 / 13f, 2 / 13f, 3 / 13f, 4 / 13f, 5 / 13f, 6 / 13f};
+    private int scanSpeed = 5;
+    private int currentScanningCount;//当前扫描的次数
+    private int currentScanningItem;//当前扫描显示的item
+    private int maxScanItemCount;//最大扫描次数
+    private boolean startScan = true;//只有设置了数据后才会开始扫描
+    private IScanningListener iScanningListener;//扫描时监听回调接口
+    public void setScanningListener(IScanningListener iScanningListener) {
+        this.iScanningListener = iScanningListener;
+    }
+    public interface IScanningListener {
+        //正在扫描（此时还没有扫描完毕）时回调
+        void onScanning(int position, float scanAngle);
+        //扫描成功时回调
+        void onScanSuccess();
+    }
     public Radar(Context context) {
         this(context, null);
         init(context, null);
@@ -92,6 +121,87 @@ public class Radar extends View {
         super.onDraw(canvas);
         this.canvas = canvas;
         makeRadar();
+        init();
+        drawCircle(canvas);
+        drawScan(canvas);
+       // drawCenterIcon(canvas);
+        post(run);
+    }
+    private void drawCenterIcon(Canvas canvas) {
+        canvas.drawBitmap(centerBitmap, null,
+                new Rect((int) (mWidth / 2 - mWidth * circleProportion[0]), (int) (mHeight / 2 - mWidth * circleProportion[0]),
+                        (int) (mWidth / 2 + mWidth * circleProportion[0]), (int) (mHeight / 2 + mWidth * circleProportion[0])), mPaintCircle);
+    }
+    private Runnable run = new Runnable() {
+        @Override
+        public void run() {
+            scanAngle = (scanAngle + scanSpeed) % 360;
+            matrix.postRotate(scanSpeed, mWidth / 2, mHeight / 2);
+            invalidate();
+            //  postDelayed(run, 130);
+            //开始扫描显示标志为true 且 只扫描一圈
+            if (startScan && currentScanningCount <= (360 / scanSpeed)) {
+                if (iScanningListener != null && currentScanningCount % scanSpeed == 0
+                        && currentScanningItem < maxScanItemCount) {
+                    iScanningListener.onScanning(currentScanningItem, scanAngle);
+                    currentScanningItem++;
+                } else if (iScanningListener != null && currentScanningItem == maxScanItemCount) {
+                    iScanningListener.onScanSuccess();
+                }
+                currentScanningCount++;
+            }
+        }
+    };
+    private void drawScan(Canvas canvas) {
+        canvas.save();
+        mPaintScan.setShader(scanShader);
+        canvas.concat(matrix);
+        canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[5], mPaintScan);
+        canvas.restore();
+    }
+    private void init() {
+        mPaintLine = new Paint();
+        mPaintLine.setColor(Color.BLUE);
+        mPaintLine.setAntiAlias(true);
+        mPaintLine.setStrokeWidth(1);
+        mPaintLine.setStyle(Paint.Style.STROKE);
+        mPaintCircle = new Paint();
+        mPaintCircle.setColor(Color.WHITE);
+        mPaintCircle.setAntiAlias(true);
+        mPaintScan = new Paint();
+        mPaintScan.setStyle(Paint.Style.FILL_AND_STROKE);
+    }
+    private int measureSize(int measureSpec) {
+        int result = 0;
+        int specMode = MeasureSpec.getMode(measureSpec);
+        int specSize = MeasureSpec.getSize(measureSpec);
+        if (specMode == MeasureSpec.EXACTLY) {
+            result = specSize;
+        } else {
+            result = 600;
+            if (specMode == MeasureSpec.AT_MOST) {
+                result = Math.min(result, specSize);
+            }
+        }
+        return specSize;
+    }
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(measureSize(widthMeasureSpec), measureSize(widthMeasureSpec));
+        mWidth = getMeasuredWidth();
+        mHeight = getMeasuredHeight();
+        mWidth = mHeight = Math.min(mWidth, mHeight);
+        centerBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.defaultavatarnew);
+        //设置扫描渲染的shader
+        scanShader = new SweepGradient(mWidth / 2, mHeight / 2,
+                new int[]{Color.TRANSPARENT, Color.parseColor("#84B5CA")}, null);
+    }
+    private void drawCircle(Canvas canvas) {
+        canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[1], mPaintLine);     // 绘制小圆
+        canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[2], mPaintLine);   // 绘制中圆
+        canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[3], mPaintLine); // 绘制中大圆
+        canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[4], mPaintLine);  // 绘制大圆
+        canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[5], mPaintLine);  // 绘制大大圆
     }
     public void refresh() {
         invalidate();
@@ -116,7 +226,7 @@ public class Radar extends View {
         metterDistance = zoomDistance + (zoomDistance / 16);
         if (metterDistance > maxDistance) metterDistance = maxDistance;
         if (showRadarAnimation) {
-            drawLine();
+            ///drawLine();
         } else {
             drawPins(u0, locations, pxCanvas, metterDistance);
         }
@@ -144,7 +254,10 @@ public class Radar extends View {
             int angle = rand.nextInt(360) + 1;
             long cX = pxCanvas + Math.round(virtualDistance * Math.cos(points.get(i).angle * Math.PI / 180));
             long cY = pxCanvas + Math.round(virtualDistance * Math.sin(points.get(i).angle * Math.PI / 180));
-            pinsInCanvas.add(new RadarPoint(points.get(i).identifier, cX + scaleFactor, cY + scaleFactor, 20, points.get(i).angle, points.get(i).IsMeetup, points.get(i).IsSpecial));
+            RadarPoint radarPoint = new RadarPoint(points.get(i).identifier, cX + scaleFactor, cY + scaleFactor, 20, points.get(i).angle, points.get(i).IsMeetup, points.get(i).IsSpecial);
+            //   double distance = RadarUtility.distanceBetween(radarView.getRadar().getReferencePoint().x, radarView.getRadar().getReferencePoint().y, r1.x, r1.y);
+            radarPoint.setDistance((float) distance);
+            pinsInCanvas.add(radarPoint);
             if (pinsImage != 0) {
                 long pnt = cX - getPinsRadius();
                 long pnt2 = cY - getPinsRadius();
@@ -213,15 +326,12 @@ public class Radar extends View {
         canvas.drawCircle(x, y, radius, paint);
     }
     public void drawPin(long x, long y, int radius, boolean isSelected, boolean Ismeetup, boolean IsSpecial) {
-
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.FILL);
-
         Paint paint1 = new Paint();
         paint1.setAntiAlias(true);
         paint1.setStyle(Paint.Style.STROKE);
-
         if (Ismeetup) {
             paint.setColor(Color.BLUE);
             paint1.setColor(Color.BLUE);
@@ -253,7 +363,7 @@ public class Radar extends View {
                 for (RadarPoint touchPoint : tempTouchedCircle) {
                     for (RadarPoint rPoint : points) {
                         if (!rPoint.isVisited) {
-                            if (rPoint.identifier.equals(touchPoint.identifier)) {
+                            if (rPoint.identifier.equals(touchPoint.identifier) && rPoint.angle == touchPoint.angle) {
                                 rPoint.isSelected = true;
                                 rPoint.isVisited = true;
                             } else {
@@ -266,6 +376,27 @@ public class Radar extends View {
                 return tempTouchedCircle;
         }
         return null;
+    }
+    double getBearing(double startLat, double startLong, double endLat, double endLong) {
+        startLat = radians(startLat);
+        startLong = radians(startLong);
+        endLat = radians(endLat);
+        endLong = radians(endLong);
+        double dLong = endLong - startLong;
+        double dPhi = Math.log(Math.tan(endLat / 2.0 + Math.PI / 4.0) / Math.tan(startLat / 2.0 + Math.PI / 4.0));
+        if (Math.abs(dLong) > Math.PI) {
+            if (dLong > 0.0)
+                dLong = (float) (-(2.0 * Math.PI - dLong));
+            else
+                dLong = (float) (2.0 * Math.PI + dLong);
+        }
+        return ((degrees((float) (Math.atan2(dLong, dPhi))) + 360.0) % 360.0);
+    }
+    float radians(double n) {
+        return (float) (n * (Math.PI / 180));
+    }
+    float degrees(float n) {
+        return (int) (n * (180 / Math.PI));
     }
     private ArrayList<RadarPoint> getTouchedCircle(final int xTouch, final int yTouch) {
         ArrayList<RadarPoint> touched = new ArrayList<>();
