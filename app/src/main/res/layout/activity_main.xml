@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
 
         app:arrow_color="#4CAF50"
-        app:background_color="#ebf97f"
+        app:background_color="#00ebf97f"
         app:center_pin_color="#00FFFFFF"
         app:load_async_image="true"
         app:pins_radius="100"

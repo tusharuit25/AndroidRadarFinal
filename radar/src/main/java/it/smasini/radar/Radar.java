@@ -1,4 +1,5 @@
 package it.smasini.radar;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -67,7 +68,7 @@ public class Radar extends View {
     private Bitmap centerBitmap;//最中间icon
     //每个圆圈所占的比例
     private static float[] circleProportion = {1 / 13f, 2 / 13f, 3 / 13f, 4 / 13f, 5 / 13f, 6 / 13f};
-    private int scanSpeed = 5;
+    private int scanSpeed = 1;
     private int currentScanningCount;//当前扫描的次数
     private int currentScanningItem;//当前扫描显示的item
     private int maxScanItemCount;//最大扫描次数
@@ -120,12 +121,16 @@ public class Radar extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         this.canvas = canvas;
-        makeRadar();
+
         init();
-        drawCircle(canvas);
+
         drawScan(canvas);
-       // drawCenterIcon(canvas);
         post(run);
+        makeRadar();
+        //drawCircle(canvas);
+
+       // drawCenterIcon(canvas);
+
     }
     private void drawCenterIcon(Canvas canvas) {
         canvas.drawBitmap(centerBitmap, null,
@@ -135,7 +140,7 @@ public class Radar extends View {
     private Runnable run = new Runnable() {
         @Override
         public void run() {
-            scanAngle = (scanAngle + scanSpeed) % 360;
+            scanAngle = (scanAngle + scanSpeed) % 45;
             matrix.postRotate(scanSpeed, mWidth / 2, mHeight / 2);
             invalidate();
             //  postDelayed(run, 130);
@@ -192,9 +197,10 @@ public class Radar extends View {
         mHeight = getMeasuredHeight();
         mWidth = mHeight = Math.min(mWidth, mHeight);
         centerBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.defaultavatarnew);
+        float[] postition = {0.9f,2.9f};
         //设置扫描渲染的shader
         scanShader = new SweepGradient(mWidth / 2, mHeight / 2,
-                new int[]{Color.TRANSPARENT, Color.parseColor("#84B5CA")}, null);
+                new int[]{Color.parseColor("#00FFFFFF"), Color.parseColor("#FFFFC699")}, postition);
     }
     private void drawCircle(Canvas canvas) {
         canvas.drawCircle(mWidth / 2, mHeight / 2, mWidth * circleProportion[1], mPaintLine);     // 绘制小圆
@@ -209,7 +215,7 @@ public class Radar extends View {
     protected void makeRadar() {
         pinsInCanvas = new ArrayList<RadarPoint>();
         int width = getWidth();
-        drawStroke(width / 2, width / 2, getBackgroundColor(), width / 2);
+        //drawStroke(width / 2, width / 2, getBackgroundColor(), width / 2);
         if (centerPinImage != 0) {
             long pnt = (width / 2) - getCenterPinRadius();
             drawImage(pnt, pnt, centerPinImage, getCenterPinRadius() * 2);
@@ -246,17 +252,20 @@ public class Radar extends View {
         return locations;
     }
     void drawPins(Location referenceLocation, ArrayList<Location> locations, int pxCanvas, int metterDistance) {
-        Random rand = new Random();
+        //Random rand = new Random();
         for (int i = 0; i < locations.size(); i++) {
             int distance = Math.round(distanceBetween(referenceLocation, locations.get(i)));
             if (distance > maxDistance) continue;
             int virtualDistance = (distance * pxCanvas / metterDistance);
-            int angle = rand.nextInt(360) + 1;
+            //int angle = rand.nextInt(360) + 1;
             long cX = pxCanvas + Math.round(virtualDistance * Math.cos(points.get(i).angle * Math.PI / 180));
             long cY = pxCanvas + Math.round(virtualDistance * Math.sin(points.get(i).angle * Math.PI / 180));
             RadarPoint radarPoint = new RadarPoint(points.get(i).identifier, cX + scaleFactor, cY + scaleFactor, 20, points.get(i).angle, points.get(i).IsMeetup, points.get(i).IsSpecial);
             //   double distance = RadarUtility.distanceBetween(radarView.getRadar().getReferencePoint().x, radarView.getRadar().getReferencePoint().y, r1.x, r1.y);
             radarPoint.setDistance((float) distance);
+            ObjectAnimator mover = ObjectAnimator.ofFloat(radarPoint,
+                    "translationX", -500f, 0f);
+            mover.setDuration(2000);
             pinsInCanvas.add(radarPoint);
             if (pinsImage != 0) {
                 long pnt = cX - getPinsRadius();
