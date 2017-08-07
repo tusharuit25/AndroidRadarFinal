@@ -4,6 +4,10 @@ Android library for a radar view with scan and load points as image or colored c
 <p align="center">
 <img width='30%' src="https://github.com/smasini/AndroidRadar/blob/master/screen1.png"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img width='30%' src="https://github.com/smasini/AndroidRadar/blob/master/screen2.png"/>
+
+
+
+
 </p>
 
 ### Download:
@@ -98,3 +102,13 @@ Other Attributes:
     app:max_distance="-1" //  Max distance by metters to cover, -1 to infinit, default velue is 10000
 
 ```
+<img width='30%' src="https://github.com/tusharuit25/AndroidRadarFinal/blob/master/Screen%20Shot%202017-03-24%20at%206.14.53%20PM.png"/>
+
+<img width='30%' src="https://github.com/tusharuit25/AndroidRadarFinal/blob/master/Screen%20Shot%202017-03-24%20at%206.15.10%20PM.png"/>
+
+<img width='30%' src="https://github.com/tusharuit25/AndroidRadarFinal/blob/master/Screen%20Shot%202017-03-24%20at%206.15.24%20PM.png"/>
+
+<img width='30%' src="https://github.com/tusharuit25/AndroidRadarFinal/blob/master/Screen%20Shot%202017-03-24%20at%206.19.26%20PM.png"/>
+
+
+As My Extended addition 
